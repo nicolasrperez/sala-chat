@@ -1,0 +1,69 @@
+<html>
+<head>
+<title>WebSocket Chat</title>
+<style>
+html,body { font:normal 0.9em arial,helvetica; }
+#log { width:600px; height:300px; border:1px solid #7F9DB9; overflow:auto; padding:5px; }
+#msg { width:400px; }
+.nick { width:150px; }
+</style>
+<script>
+var socket;
+
+function init() {
+    var host = "ws://localhost:9000"; 
+    socket = new WebSocket(host);
+
+    socket.onopen = function() {
+        log("Conectado al servidor");
+    };
+
+    socket.onmessage = function(msg) {
+        try {
+            var data = JSON.parse(msg.data);
+            log(data.nick + ": " + data.mensaje);
+        } catch(e) {
+            log(msg.data);
+        }
+    };
+
+    socket.onclose = function() {
+        log("Desconectado del servidor");
+    };
+}
+
+function send(){
+    var nick = document.getElementById("nick").value;
+    var mensaje = document.getElementById("msg").value;
+
+    if(!nick || !mensaje) {
+        alert("Debes ingresar nombre y mensaje");
+        return;
+    }
+
+    var data = {nick: nick, mensaje: mensaje};
+    socket.send(JSON.stringify(data));
+    document.getElementById("msg").value = "";
+}
+
+function log(msg){
+    var logDiv = document.getElementById("log");
+    logDiv.innerHTML += msg + "<br>";
+    logDiv.scrollTop = logDiv.scrollHeight; // scroll automático
+}
+
+function onkey(event){
+    if(event.keyCode==13) send();
+}
+</script>
+</head>
+<body onload="init()">
+<h3>Chat WebSocket</h3>
+<div id="log"></div>
+<label>Nombre:</label>
+<input id="nick" class="nick" type="text" placeholder="Tu nick"/>
+<br>
+<input id="msg" type="text" onkeypress="onkey(event)" placeholder="Escribe tu mensaje"/>
+<button onclick="send()">Enviar</button>
+</body>
+</html>
